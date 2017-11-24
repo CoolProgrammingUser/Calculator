@@ -47,15 +47,15 @@
                 this.position = {"top": String((document.body.clientHeight-40)*Math.random()) + "px"};
                 this.ID = "e" + entityNumber;
                 entityNumber++;
-                specs.forEach(function(value, specification) {
+                S.forEach(specs, function(value, specification) {
                     switch(specification) {
                         case "appearance":
-                            value.forEach(function(feature, key) {
+                            S.forEach(value, function(feature, key) {
                                 this.appearance[key] = feature;
                             });
                             break;
                         case "position":
-                            value.forEach(function(place, key) {
+                            S.forEach(value, function(place, key) {
                                 this.position[key] = place;
                             });
                             break;
@@ -182,7 +182,7 @@
             }
             function hexSet(numberList, digits, prefix) {  // prefix is optional
                 var result = "";
-                numberList.forEach(function(number) {
+                S.forEach(numberList, function(number) {
                     number = Math.round(number);
                     number = number.toString(16);
                     while (number.length < digits) {
@@ -193,7 +193,7 @@
                 return (prefix || "") + result;
             }
             function addStyles(ID, styles) {
-                styles.forEach(function(style, attribute) {
+                S.forEach(styles, function(style, attribute) {
                     document.getElementById(ID).style[attribute] = style;
                 });
             }
