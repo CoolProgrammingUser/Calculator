@@ -99,58 +99,82 @@
 			}
 			function solve() {
 				let expression = document.getElementById("expression").value.trim().toLowerCase();
-				if (expression.search(/^(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything$/) == -1) {
-					// gets rid of anything that isn't math
-					expression = expression.replace(/arccosine|arcsine|arctangent|cosine|sine|tangent|arccos|arcsin|arctan|acos|asin|atan|cos|sin|tan|pi|e|[^\d.()+*^%/=<>-]/g, function (match) {
-						switch (match) {
-							case "arccosine":
-							case "arcsine":
-							case "arctangent":
-							case "cosine":
-							case "sine":
-							case "tangent":
-							case "arccos":
-							case "arcsin":
-							case "arctan":
-							case "acos":
-							case "asin":
-							case "atan":
-							case "cos":
-							case "sin":
-							case "tan":
-							case "pi":
-							case "e":
-								return match;
-							default:
-								return "";
-						}
-					});
-				} else {
-					expression = "42";
-				}
-				if (expression != document.getElementById("expression").value.trim() && expression != "42") {
+				// gets rid of anything that isn't math
+				expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything|arccosine|arcsine|arctangent|cosine|sine|tangent|arccos|arcsin|arctan|acos|asin|atan|cos|sin|tan|log|ln|pi|e|[^\d .()+*^%/=<>-]/g, function (match) {
+					switch (match) {
+						case (match.match(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/) ? match.match(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/)[0] : ""):
+						case "arccosine":
+						case "arcsine":
+						case "arctangent":
+						case "cosine":
+						case "sine":
+						case "tangent":
+						case "arccos":
+						case "arcsin":
+						case "arctan":
+						case "acos":
+						case "asin":
+						case "atan":
+						case "cos":
+						case "sin":
+						case "tan":
+						case "log":
+						case "ln":
+						case "pi":
+						case "e":
+							return match;
+						default:
+							return "";
+					}
+				});
+				if (expression != document.getElementById("expression").value.trim().toLowerCase()) {
 					alert("Invalid characters were used in the mathematical expression.");
 				} else if (expression == "") {
 					return;
+				} else if (expression.match(/\(/g).length != expression.match(/\)/g).length) {
+					alert("There's at least one parenthesis missing.");
 				} else {
+					expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/g, "42");
 					expression = expression.replace(/==+/g, "=");
 					expression = expression.replace(/([^<>])=(?!<|>)/g, function (match) { return match + "="; });
 					expression = expression.replace(/=<|==</g, "<=");
 					expression = expression.replace(/=>|==>/g, ">=");
-					expression = expression.replace(/(\([^)]+\)|\w+\.?\d*|\.\d+)\^(\([^)]+\)|-?\w+\.?\d*|-?\.\d+)/g, function (match, base, exponent) {  // replaces mathematical exponent syntax with JavaScript exponent syntax
-						return "Math.pow(" + base + ", " + exponent + ")";
-					});
-					expression = expression.replace(/(^|[^a-z])(?:arccosine|arccos|acos)\(([^)]+)\)/g, function (match, char, acos) {return char+"Math.acos("+acos+")";});
-					expression = expression.replace(/(^|[^a-z])(?:arcsine|arcsin|asin)\(([^)]+)\)/g, function (match, char, asin) {return char+"Math.asin("+asin+")";});
-					expression = expression.replace(/(^|[^a-z])(?:arctangent|arctan|atan)\(([^)]+)\)/g, function (match, char, atan) {return char+"Math.atan("+atan+")";});
-					expression = expression.replace(/(^|[^a-z])(?:cosine|cos)\(([^)]+)\)/g, function (match, char, cos) { return char + "Math.cos(" + cos + ")"; });
-					expression = expression.replace(/(^|[^a-z])(?:sine|sin)\(([^)]+)\)/g, function (match, char, sin) { return char + "Math.sin(" + sin + ")"; });
-					expression = expression.replace(/(^|[^a-z])(?:tangent|tan)\(([^)]+)\)/g, function (match, char, tan) { return char + "Math.tan(" + tan + ")"; });
 					expression = expression.replace(/(^|[^a-z])pi(?![a-z])/g, function (match, char) { return char + "Math.PI"; });
 					expression = expression.replace(/(^|[^a-z])e(?![a-z])/g, function (match, char) { return char + "Math.E"; });
+					expression = expression.replace(/(^|[^a-z])(log[^()]*)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, base, log) {
+						if (base == "log") {
+							return char + "Math.log(" + log + ")/Math.log(10)";
+						} else {
+							return char + "Math.log(" + log + ")/Math.log(" + eval(base.slice(3)) + ")";
+						}
+					});
+					expression = expression.replace(/(^|[^a-z])ln(\d+\.?\d*|\.\d+|\((?:[^()]*(?:\([^()]+\))?[^()]*)+\))/g, function (match, char, log) {
+						return char + "Math.log(" + (log[0]=="(" ? log.slice(1,log.length-1) : log) + ")";
+					});
+					expression = expression.replace(/(\((?:[^()]*(?:\([^()]+\))?[^()]*)+\)|\w+\.?\d*|\.\d+)\^(\((?:[^()]*(?:\([^()]+\))?[^()]*)+\)|-?\w+\.?\d*|-?\.\d+)/g, function (match, base, exponent) {  // replaces mathematical exponent syntax with JavaScript exponent syntax
+						return "Math.pow(" + base + ", " + exponent + ")";
+					});
+					expression = expression.replace(/(^|[^a-z])(?:arccosine|arccos|acos)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, acos) {
+						return char + "Math.acos(" + acos + (document.getElementById("degrees").checked ? ")*180/Math.PI" : ")");
+					});
+					expression = expression.replace(/(^|[^a-z])(?:arcsine|arcsin|asin)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, asin) {
+						return char + "Math.asin(" + asin + (document.getElementById("degrees").checked ? ")*180/Math.PI" : ")");
+					});
+					expression = expression.replace(/(^|[^a-z])(?:arctangent|arctan|atan)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, atan) {
+						return char + "Math.atan(" + atan + (document.getElementById("degrees").checked ? ")*180/Math.PI" : ")");
+					});
+					expression = expression.replace(/(^|[^a-z])(?:cosine|cos)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, cos) {
+						return char + "Math.cos(" + (document.getElementById("degrees").checked ? cos+"*Math.PI/180" : cos) + ")";
+					});
+					expression = expression.replace(/(^|[^a-z])(?:sine|sin)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, sin) {
+						return char + "Math.sin(" + (document.getElementById("degrees").checked ? sin+"*Math.PI/180" : sin) + ")";
+					});
+					expression = expression.replace(/(^|[^a-z])(?:tangent|tan)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, tan) {
+						return char + "Math.tan(" + (document.getElementById("degrees").checked ? tan+"*Math.PI/180" : tan) + ")";
+					});
 					try {
 						let answer = String(eval(expression));
-						if (answer.includes("e")) {  // if the answer is in scientific notation
+						if (answer.includes("e") && answer != "true" && answer != "false") {  // if the answer is in scientific notation
 							if (answer != String(Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000)) {  // if the significand goes to more than 6 decimal places
 								document.getElementById("box3").value = Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000;
 							} else {
@@ -158,13 +182,23 @@
 							}
 							document.getElementById("exponent").textContent = answer.split("e")[1];
 							document.getElementById("tenToAPower").style.display = "inline-block";
+						} else if (answer.includes(".") && answer.indexOf(".") > 10) {  // if the answer should be in scientific notation
+							let exponent = answer.indexOf(".") - 1;
+							document.getElementById("box3").value = answer.splice(exponent + 1, 1).splice(1, 0, ".");
+							document.getElementById("exponent").textContent = exponent;
+							document.getElementById("tenToAPower").style.display = "inline-block";
+						} else if (!answer.includes(".") && answer.length > 10) {  // if the answer should be in scientific notation
+							let exponent = answer.length - 1;
+							document.getElementById("box3").value = answer.splice(1, 0, ".");
+							document.getElementById("exponent").textContent = exponent;
+							document.getElementById("tenToAPower").style.display = "inline-block";
 						} else {
 							document.getElementById("box3").value = answer;
 							document.getElementById("tenToAPower").style.display = "none";
 						}
-						if (answer === true) {
+						if (answer == "true") {
 							document.getElementById("box3").style.color = "#0a0";
-						} else if (answer === false) {
+						} else if (answer == "false") {
 							document.getElementById("box3").style.color = "red";
 						} else {
 							document.getElementById("box3").style.color = "black";
@@ -294,10 +328,10 @@
 			}
 			#dot {
 				position: relative;
-				padding: 1em;
+				padding: 1rem;
 				background: blue;
-				border-radius: 1em;
-				margin: 1.7em auto 0em;
+				border-radius: 1rem;
+				margin: 1rem auto 0em;
 			}
 			#scoreBox {
 				display: none;
@@ -345,6 +379,11 @@
 				<button class="morph" onclick="clearValue()">
 					Clear
 				</button>
+				<br>
+				<input type="radio" name="trigUnits" id="degrees" checked>
+				<label for="radians">Degrees</label>
+				<input type="radio" name="trigUnits" id="radians">
+				<label for="radians">Radians</label>
 			</div>
 		</div>
 		<br>
