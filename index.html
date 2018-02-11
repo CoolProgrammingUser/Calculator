@@ -131,7 +131,7 @@
 					alert("Invalid characters were used in the mathematical expression.");
 				} else if (expression == "") {
 					return;
-				} else if (expression.match(/\(/g).length != expression.match(/\)/g).length) {
+				} else if (expression.search(/\(|\)/) > -1 && expression.match(/\(/g).length != expression.match(/\)/g).length) {
 					alert("There's at least one parenthesis missing.");
 				} else {
 					expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/g, "42");
