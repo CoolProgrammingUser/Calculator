@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="html-class">
+<html>
 	<head>
 		<title>
 			Calculator
@@ -139,6 +139,7 @@
 					expression = expression.replace(/([^<>])=(?!<|>)/g, function (match) { return match + "="; });
 					expression = expression.replace(/=<|==</g, "<=");
 					expression = expression.replace(/=>|==>/g, ">=");
+					expression = expression.replace(/\^/g, "**");
 					expression = expression.replace(/(^|[^a-z])pi(?![a-z])/g, function (match, char) { return char + "Math.PI"; });
 					expression = expression.replace(/(^|[^a-z])e(?![a-z])/g, function (match, char) { return char + "Math.E"; });
 					expression = expression.replace(/(^|[^a-z])(log[^()]*)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, base, log) {
@@ -150,9 +151,6 @@
 					});
 					expression = expression.replace(/(^|[^a-z])ln(\d+\.?\d*|\.\d+|\((?:[^()]*(?:\([^()]+\))?[^()]*)+\))/g, function (match, char, log) {
 						return char + "Math.log(" + (log[0]=="(" ? log.slice(1,log.length-1) : log) + ")";
-					});
-					expression = expression.replace(/(\((?:[^()]*(?:\([^()]+\))?[^()]*)+\)|\w+\.?\d*|\.\d+)\^(\((?:[^()]*(?:\([^()]+\))?[^()]*)+\)|-?\w+\.?\d*|-?\.\d+)/g, function (match, base, exponent) {  // replaces mathematical exponent syntax with JavaScript exponent syntax
-						return "Math.pow(" + base + ", " + exponent + ")";
 					});
 					expression = expression.replace(/(^|[^a-z])(?:arccosine|arccos|acos)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, acos) {
 						return char + "Math.acos(" + acos + (document.getElementById("degrees").checked ? ")*180/Math.PI" : ")");
@@ -173,6 +171,7 @@
 						return char + "Math.tan(" + (document.getElementById("degrees").checked ? tan+"*Math.PI/180" : tan) + ")";
 					});
 					try {
+						console.log(expression);
 						let answer = String(eval(expression));
 						if (answer.includes("e") && answer != "true" && answer != "false") {  // if the answer is in scientific notation
 							if (answer != String(Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000)) {  // if the significand goes to more than 6 decimal places
