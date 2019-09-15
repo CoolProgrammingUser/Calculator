@@ -310,8 +310,9 @@
 				height: 15em;
 			}
 			#expression {
-				margin: 1em auto;
-				width: 15em;
+				margin: .5em auto;
+				width: 12em;
+				height: 3em;
 			}
 			#answer {
 				position: absolute;
@@ -331,7 +332,7 @@
 				padding: 1rem;
 				background: blue;
 				border-radius: 1rem;
-				margin: 1rem auto 0em;
+				margin: 0rem auto 0em;
 			}
 			#scoreBox {
 				display: none;
@@ -359,9 +360,9 @@
 			</a>
 		</h1>
 		<div id="inputOutput">
-			<input type="text" class="morph" id="expression" placeholder="Type your expression">
+			<textarea class="morph" id="expression" placeholder="Type your expression"></textarea>
 			<div id="answer">
-				<input type="text" id="box3" readonly="true" placeholder="Result">
+				<input type="text" id="box3" readonly placeholder="Result">
 				<div id="tenToAPower">
 					&times; 10<sup id="exponent">0</sup>
 				</div>
