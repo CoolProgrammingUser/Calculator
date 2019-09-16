@@ -22,6 +22,7 @@
 					}
 					keys[String(event.keyCode)] = true;
 				} else if (event.keyCode == 13) {  // if the "Enter" key is pressed
+					event.preventDefault();
 					solve();
 				}
 			});
@@ -53,7 +54,7 @@
 			document.addEventListener("mouseup", function(){
 				document.getElementById("inputOutput").style.background = hexSet([255*Math.round(Math.random()), 255*Math.round(Math.random()), 255*Math.round(Math.random())], 2, '#');
 			});
-			var Entity = function(specs) {
+			var Entity = function (specs) {
 				specs = specs || {};
 				this.appearance = {"background-color": String(hexSet([255*Math.round(Math.random()), 255*Math.round(Math.random()), 255*Math.round(Math.random())], 2, '#'))};
 				this.position = {"top": String((document.body.clientHeight-40)*Math.random()) + "px"};
@@ -88,16 +89,22 @@
 				setTimeout(function() {
 					document.body.removeChild(div);
 				}, 5000);  // This is the duration of the transition.
-				div.addEventListener("click", function() {
+				div.addEventListener("click", function () {
+					let score = Math.round(25 / this.textContent.length);
+					if (score == 0) {
+						score = 1;
+					}
 					if (document.getElementById("scoreBox").offsetParent === null) {  // checks whether #scoreBox is displayed
 						document.getElementById("scoreBox").style.display = "inline-block";
-						document.getElementById("score").innerHTML = "Score: 1";
+						document.getElementById("score").innerHTML = "Score: " + score;
 					} else {
 						let text = document.getElementById("score").innerHTML;
-						document.getElementById("score").innerHTML = "Score: " + (Number(text.split(" ")[1])+1);
+						document.getElementById("score").innerHTML = "Score: " + (Number(text.split(" ")[1]) + score);
 					}
 				});
 			}
+
+
 			function solve() {
 				let expression = document.getElementById("expression").value.trim().toLowerCase();
 				// gets rid of anything that isn't math
@@ -171,8 +178,8 @@
 					expression = expression.replace(/(^|[^a-z])(?:tangent|tan)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, tan) {
 						return char + "Math.tan(" + (document.getElementById("degrees").checked ? tan+"*Math.PI/180" : tan) + ")";
 					});
+					console.log(expression);
 					try {
-						console.log(expression);
 						let answer = String(eval(expression));
 						if (answer.includes("e") && answer != "true" && answer != "false") {  // if the answer is in scientific notation
 							if (answer != String(Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000)) {  // if the significand goes to more than 6 decimal places
@@ -210,6 +217,8 @@
 					}
 				}
 			}
+
+
 			function clearValue() {  // This can't be called "clear()".
 				document.getElementById("expression").value = "";
 				document.getElementById("box3").value = "";
@@ -238,6 +247,9 @@
 				}, 1000);
 				makeEntity();
 			}
+			S.listen("expression", "dblclick", function () {
+				this.value = "";
+			});
 			function transfer() {
 				S.getId("expression").value = S.getId("box3").value;
 				makeEntity();
