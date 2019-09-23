@@ -281,7 +281,7 @@
 				background: linear-gradient(to bottom right, red, orange, yellow, green, blue, purple);
 			}
 			button {
-				margin: 0em;
+				margin: .25em;
 			}
 			.morph {
 				border: .05em solid #aaaaaa;
@@ -322,7 +322,7 @@
 				height: 15em;
 			}
 			#expression {
-				margin: .5em auto;
+				margin: .75em auto;
 				width: 12em;
 				height: 3em;
 			}
@@ -352,6 +352,11 @@
 				background: radial-gradient(ellipse, white, transparent, transparent);
 				-webkit-animation: pulse 1s ease infinite 0s alternate;
 				animation: pulse 1s ease infinite 0s alternate;
+			}
+			#scoreHolder {
+				padding-top: 3em;
+				width: 8em;
+				height: 8em;
 			}
 			@keyframes pulse {
 				from {
@@ -384,7 +389,6 @@
 				<button class="morph" onclick="solve()">
 					=
 				</button>
-				<br>
 				<button class="morph" onclick="transfer()">
 					Ans
 				</button>
@@ -401,7 +405,10 @@
 		</div>
 		<br>
 		<div id="scoreBox">
-			<p id="score"></p>
+			<div id="scoreHolder">
+				<span id="score"></span><br>
+				<span id="highscore"></span>
+			</div>
 		</div>
 	</body>
 </html>
