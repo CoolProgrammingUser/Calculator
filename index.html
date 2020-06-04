@@ -11,10 +11,14 @@
 			var intervals = {};
 			var keys = {};
 			var position = {left:0, top:0};
-			var previousEvaluation = "";
+			var previousEvaluation = "";  // the previous mathematical expression calculated (prevents spamming Entity creation)
+			var previousAnswer = "";  // the result of the current/previous calculation
+
+
 			window.addEventListener("load", function() {  // This is what runs when the page loads; equivalent to <body onload=aFunction()>
 				intervals.checker = setInterval(keyResponse, 10);
 			});
+
 			document.addEventListener("keydown", function(event) {  // This is when a key is pressed down. This is continually called.
 				if (document.activeElement != document.getElementById("expression")) {  // allows navigating the expression input (and do it without moving stuff)
 					if ([37, 38, 39, 40].some(function (code) { return event.keyCode == code; })) {  // if an arrow key was pressed
@@ -26,9 +30,11 @@
 					solve();
 				}
 			});
+
 			document.addEventListener("keyup", function(event) {  // This is when a key is let up.
 				keys[String(event.keyCode)] = false;
 			});
+
 			function keyResponse() {
 				S.forEach(keys, function (trueFalse, key) {
 					if (trueFalse == true) {
@@ -51,9 +57,11 @@
 				document.getElementById("dot").style.left = position.left / 10.0 + "em";
 				document.getElementById("dot").style.top = position.top / 10.0 + "em";
 			}
+
 			document.addEventListener("mouseup", function(){
 				document.getElementById("inputOutput").style.background = hexSet([255*Math.round(Math.random()), 255*Math.round(Math.random()), 255*Math.round(Math.random())], 2, '#');
 			});
+
 			var Entity = function (specs) {
 				specs = specs || {};
 				this.appearance = {"background-color": String(hexSet([255*Math.round(Math.random()), 255*Math.round(Math.random()), 255*Math.round(Math.random())], 2, '#'))};
@@ -108,9 +116,11 @@
 			function solve() {
 				let expression = document.getElementById("expression").value.trim().toLowerCase();
 				// gets rid of anything that isn't math
-				expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything|arccosine|arcsine|arctangent|cosine|sine|tangent|arccos|arcsin|arctan|acos|asin|atan|cos|sin|tan|log|ln|pi|e|[^\d .()+*^%/=<>-]/g, function (match) {
+				expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything|answer|ans|arccosine|arcsine|arctangent|cosine|sine|tangent|arccos|arcsin|arctan|acos|asin|atan|cos|sin|tan|sqrt|log|ln|pi|e|[^\d .,()+*^%/=<>-]/g, function (match) {
 					switch (match) {
 						case (match.match(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/) ? match.match(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/)[0] : ""):
+						case "answer":
+						case "ans":
 						case "arccosine":
 						case "arcsine":
 						case "arctangent":
@@ -126,6 +136,7 @@
 						case "cos":
 						case "sin":
 						case "tan":
+						case "sqrt":
 						case "log":
 						case "ln":
 						case "pi":
@@ -143,11 +154,14 @@
 					alert("There's at least one parenthesis missing.");
 				} else {
 					expression = expression.replace(/(?:(?:the )?answer to )?life,? the universe,? (?:and|&) everything/g, "42");
+                    expression = expression.replace(/answer|ans/g, previousAnswer);
+					expression = expression.replace(/,/g, "");
 					expression = expression.replace(/==+/g, "=");
 					expression = expression.replace(/([^<>])=(?!<|>)/g, function (match) { return match + "="; });
 					expression = expression.replace(/=<|==</g, "<=");
 					expression = expression.replace(/=>|==>/g, ">=");
-					expression = expression.replace(/\^/g, "**");
+                    expression = expression.replace(/\^/g, "**");
+                    expression = expression.replace(/sqrt\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, "($1)**.5");
 					expression = expression.replace(/(^|[^a-z])pi(?![a-z])/g, function (match, char) { return char + "Math.PI"; });
 					expression = expression.replace(/(^|[^a-z])e(?![a-z])/g, function (match, char) { return char + "Math.E"; });
 					expression = expression.replace(/(^|[^a-z])(log[^()]*)\(((?:[^()]*(?:\([^()]+\))?[^()]*)+)\)/g, function (match, char, base, log) {
@@ -180,7 +194,8 @@
 					});
 					console.log(expression);
 					try {
-						let answer = String(eval(expression));
+                        let answer = String(eval(expression));
+                        previousAnswer = answer;
 						if (answer.includes("e") && answer != "true" && answer != "false") {  // if the answer is in scientific notation
 							if (answer != String(Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000)) {  // if the significand goes to more than 6 decimal places
 								document.getElementById("box3").value = Math.round(Number(answer.split("e")[0]) * 1000000) / 1000000;
@@ -189,17 +204,29 @@
 							}
 							document.getElementById("exponent").textContent = answer.split("e")[1];
 							document.getElementById("tenToAPower").style.display = "inline-block";
-						} else if (answer.includes(".") && answer.indexOf(".") > 10) {  // if the answer should be in scientific notation
+						} else if (answer.includes(".") && answer.indexOf(".") > 10) {  // if the answer should be in scientific notation and has a decimal
 							let exponent = answer.indexOf(".") - 1;
 							document.getElementById("box3").value = answer.splice(exponent + 1, 1).splice(1, 0, ".");
 							document.getElementById("exponent").textContent = exponent;
 							document.getElementById("tenToAPower").style.display = "inline-block";
-						} else if (!answer.includes(".") && answer.length > 10) {  // if the answer should be in scientific notation
+						} else if (!answer.includes(".") && answer.length > 10) {  // if the answer should be in scientific notation and doesn't have a decimal
 							let exponent = answer.length - 1;
 							document.getElementById("box3").value = answer.splice(1, 0, ".");
 							document.getElementById("exponent").textContent = exponent;
 							document.getElementById("tenToAPower").style.display = "inline-block";
-						} else {
+						} else if ((!answer.includes(".") && answer.length > 3 || answer.includes(".") && answer.indexOf(".") > 3) && !(answer === "true" || answer === "false")) {  // if comma separators should be added
+							if (answer.includes(".")) {  // if there's a decimal
+								for (let index = answer.indexOf(".") - 3; index > 0; index -= 3) {
+									answer = answer.slice(0, index) + "," + answer.slice(index);
+                                }
+                            } else {  // if there's not a decimal
+                                for (let index = answer.length - 3; index > 0; index -= 3) {
+                                    answer = answer.slice(0, index) + "," + answer.slice(index);
+                                }
+                            }
+                            document.getElementById("box3").value = answer;
+                            document.getElementById("tenToAPower").style.display = "none";
+						} else {  // if the answer doesn't need reformatting
 							document.getElementById("box3").value = answer;
 							document.getElementById("tenToAPower").style.display = "none";
 						}
@@ -247,19 +274,31 @@
 				}, 1000);
 				makeEntity();
 			}
+
 			S.listen("expression", "dblclick", function () {
 				this.value = "";
-			});
-			function transfer() {
-				S.getId("expression").value = S.getId("box3").value;
-				makeEntity();
+            });
+            S.listen("expression", "touchhold", function () {
+                this.value = "";
+            });
+
+            function transfer() {
+                if (previousEvaluation == S.getId("expression").value.trim()) {  // if starting to a new expression
+                    S.getId("expression").value = "ans";
+				} else {  // if adding to an existing expression
+					S.getId("expression").value += "ans";
+				}
+				S.getId("expression").focus();
 			}
+
+
 			function makeEntity() {
 				if (previousEvaluation != S.getId("expression").value.trim()) {
 					new Entity();
 					previousEvaluation = S.getId("expression").value.trim();
 				}
 			}
+
 			function hexSet(numberList, digits, prefix) {
 				var result = "";
 				S.forEach(numberList, function(number) {
